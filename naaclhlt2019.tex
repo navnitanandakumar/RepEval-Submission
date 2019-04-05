@@ -1,0 +1,418 @@
+%
+% File naacl2019.tex
+%
+%% Based on the style files for ACL 2018 and NAACL 2018, which were
+%% Based on the style files for ACL-2015, with some improvements
+%%  taken from the NAACL-2016 style
+%% Based on the style files for ACL-2014, which were, in turn,
+%% based on ACL-2013, ACL-2012, ACL-2011, ACL-2010, ACL-IJCNLP-2009,
+%% EACL-2009, IJCNLP-2008...
+%% Based on the style files for EACL 2006 by 
+%%e.agirre@ehu.es or Sergi.Balari@uab.es
+%% and that of ACL 08 by Joakim Nivre and Noah Smith
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[hyperref]{naaclhlt2019}
+\usepackage{times}
+\usepackage{latexsym}
+
+\usepackage{url}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{pgfplots}
+\usepackage{xspace}
+\usepackage{paralist}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{relsize}
+\usepackage{etoolbox}
+
+\aclfinalcopy % Uncomment this line for the final submission
+%\def\aclpaperid{***} %  Enter the acl Paper ID here
+
+%\setlength\titlebox{5cm}
+% You can expand the titlebox if you need extra space
+% to show all the authors. Please do not make the titlebox
+% smaller than 5cm (the original size); we will check this
+% in the camera-ready version and ask you to change it back.
+
+\newcommand\BibTeX{B{\sc ib}\TeX}
+
+\newcommand{\lex}[1]{\textit{#1}\xspace}
+\newcommand{\gloss}[1]{``#1''\xspace}
+
+\newcommand{\embmethod}[2][]{\textsf{#2}$_{\text{#1}}$\xspace}
+\newcommand{\wordtovec}{\embmethod{word2vec}}
+\newcommand{\infersent}[1][]{\embmethod[#1]{infersent}}
+\newcommand{\doctovec}{\embmethod{doc2vec}}
+\newcommand{\elmo}{\embmethod{ELMo}}
+\newcommand{\elmocon}{\embmethod{ELMo\textsubscript{context}}}
+\newcommand{\fasttext}{\embmethod{fastText}}
+\newcommand{\fasttextpre}{\embmethod{fastText\textsubscript{pre}}}
+\newcommand{\glove}{\embmethod{GloVe}}
+\newcommand{\bert}{\embmethod{BERT}}
+\newcommand{\bertcon}{\embmethod{BERT\textsubscript{context}}}
+\newcommand{\flair}{\embmethod{Flair}}
+\newcommand{\flaircon}{\embmethod{Flair\textsubscript{context}}}
+
+\newcommand{\dataset}[2][]{\textsc{#2}$_{\text{#1}}$\xspace}
+\newcommand{\reddy}{\dataset{Reddy}}
+\newcommand{\ramisch}{\dataset{Ramisch}}
+\newcommand{\discoj}[1][]{\dataset[#1]{DiSCo}}
+
+\newcommand{\method}[2][]{\ensuremath{\text{#2}_{\text{#1}}}\xspace}
+\newcommand{\presum}{\method[pre]{Direct}}
+\newcommand{\postsum}{\method[post]{Direct}}
+\newcommand{\firstpara}{\method{Para\_first}}
+\newcommand{\avgparapre}{\method[pre]{Para\_all}}
+\newcommand{\avgparapost}{\method[post]{Para\_all}}
+\newcommand{\combined}{\method{Combined}}
+
+\newcommand{\MWEvec}{\ensuremath{\mathbf{mwe}}\xspace}
+\newcommand{\paravec}[1][]{\ensuremath{\mathbf{para_{#1}}}\xspace}
+\newcommand{\MWEonevec}{\ensuremath{\mathbf{w_1}}\xspace}
+\newcommand{\MWEtwovec}{\ensuremath{\mathbf{w_2}}\xspace}
+
+\newcommand{\tabref}[2][]{Table#1~\ref{#2}\xspace}
+\newcommand{\figref}[2][]{Figure#1~\ref{#2}\xspace}
+\newcommand{\secref}[2][]{Section#1~\ref{#2}\xspace}
+
+\usepackage{graphicx}
+\usepackage{pgfplots}
+
+%% local settings
+\sisetup{detect-weight,mode=text}
+% for avoiding siunitx using bold extended
+\renewrobustcmd{\bfseries}{\fontseries{b}\selectfont}
+\renewrobustcmd{\boldmath}{}
+% abbreviation
+\newrobustcmd{\B}{\bfseries}
+% shorten the intercolumn spaces
+\addtolength{\tabcolsep}{-4.1pt}
+
+\title{How well do Embedding Models capture Non-compositionality? A View
+from Multiword Expressions}
+
+\author{Navnita Nandakumar \qquad
+  Timothy Baldwin \qquad
+  Bahar Salehi\\
+	Department of Computing and Information Systems \\
+The University of Melbourne \\
+Victoria 3010, Australia \\
+  {\tt nnandakumar@student.unimelb.edu.au} \qquad {\tt \{tbaldwin|salehi.b\}@unimelb.edu.au}   \\
+}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  In this paper, we apply various embedding methods on multiword
+  expressions to study how well they capture the nuances of
+  non-compositional data. Our results from a pool of word-, character-,
+  and document-level embbedings suggest that \wordtovec performs the
+  best, followed by \fasttext and \infersent. Moreover, we find that recently-proposed contextualised embedding models such as \bert and \elmo are not adept at handling non-compositionality in multiword expressions. 
+\end{abstract}
+
+\section{Introduction}
+Modern embedding models, including contextual embeddings, have been shown to work impressively well across a range of tasks \cite{Peters2018,Devlin2018}. However, study of their performance on data with a mix of compositionality levels, whose meaning is often not easily predicted from that of its constituent words, has been limited \cite{Salehi2015,Hakimi2018,Nanda2018}. 
+
+At present, there exists no definitive metric to measure the modelling capabilities of an embedding technique across a spectrum of non-compositionality, especially in the case of newer, contextualised representations, such as \elmo and \bert.
+
+In this study, we apply various embedding methods to the task of determining the compositionality of multiword expressions (``MWEs''), specifically noun--noun and adjective--noun pairs, to test their performance on data representing a range of compositionality. Compositionality prediction can be modeled as a regression task \cite{Baldwin2010} that involves mapping an MWE onto a continuous scale, representing its compositionality as a whole or with respect to each of its components. For example, \lex{application form} can be considered to be quite compositional, while \lex{sitting duck}\footnote{A \lex{sitting duck} means a person or thing with no protection against an attack or other source of danger.} is considered to be idiomatic or non-compositional. \lex{Close shave}\footnote{A \lex{close shave} is a narrow escape from danger or disaster.} could be seen as partially compositional, heavily compositional with regards to the first noun (the modifier) and less compositional with regards to the second (the head). In this study, we focus on predicting the compositionality of the MWE as a whole.
+
+The main contributions of this paper are:
+\begin{compactenum}[(i)]
+\item we compare embeddings over 3 different MWE datasets, focusing on noun--noun and adjective--noun pairs;
+\item we experiment with 7 character-, word-, and document-level embedding models, including contextualised models;
+\item we show that, despite their success on a range of other tasks, recent embedding learning methods lag behind simple \wordtovec in capturing MWE non-compositionality.
+\end{compactenum}
+
+\section{Related Work}
+
+Although vector space models have been popular since the 1990s, it was only after \citet{Coll2018} proposed a unified neural network architecture to learning distributed word representations and demonstrated its performance on downstream tasks, that embedding learning established a footing in NLP, with \wordtovec \cite{Mikolov2013} being the catalyst to the ``embedding revolution''.
+
+Language embeddings are an example of an unsupervised representation learning application done well. They are preferred primarily because they can be learned from unannotated corpora and, therefore, eliminate the need for annotation (which is expensive and time-consuming).
+
+\citet{Salehi2015} were the first to apply word embeddings to the task of predicting the compositionality of MWEs. The assumption is that the compositionality of an MWE is proportional to the relative similarity between each of the components and the overall MWE, represented by their respective embeddings. While this method remains state-of-the-art for the task of MWE compositionality prediction, it requires token-level pre-identification of each MWE in the training corpus in order to train a model. This is not ideal, as it means the model requires retraining each time the set of MWEs changes or is modified. It also requires ``complete'' knowledge of MWEs before the training step, which is impractical in most cases.
+
+Character-level embedding models \cite{Hakimi2018} are one possible solution to the fixed-vocabulary problem, in being able to handle an unbounded vocabulary, including MWEs. Document embeddings \cite{Le+:2014,Conneau2017} are also highly relevant to dynamically generating embeddings for MWEs, as they generate representations of arbitrary spans of text, which are potentially able to capture the context of use of the MWE.
+
+\section{Methodology}
+
+Following \citet{Salehi2015} and \citet{Nanda2018}, we compute the overall compositionality of an MWE with three broad approaches: direct composition, paraphrase similarity, and a combined approach. In all experiments, the similarity of a pair of vectors is measured using cosine similarity.
+
+\subsection{Direct Composition}
+\label{sec:direct}
+
+Intuitively, an MWE appearing in similar contexts to its components is likely to be compositional. We directly compare the vector embedding of the MWE with that of its component words, in one of two ways: (1) performing an element-wise sum to obtain a `combined' vector, which is then compared with the vector of the MWE (\presum); and (2) a post-hoc combination of the scores obtained by individually comparing the component vectors with that of the MWE via a weighted sum (\postsum). Formally:
+\begin{eqnarray*}
+  \begin{split}
+    \presum = & \cos(\MWEvec, \MWEonevec + \MWEtwovec)\\
+    \postsum = & \alpha \cos(\MWEvec, \MWEonevec) + \\  
+    & (1 - \alpha) \cos(\MWEvec, \MWEtwovec)\\
+  \end{split}
+\end{eqnarray*}
+where: \MWEvec, \MWEonevec, and \MWEtwovec are the embeddings for the combined MWE, first component and second component, respectively;\footnote{All methods are presented and evaluated in terms of two-element MWEs in this work, but are trivially generalisable to multi-element MWEs.} $\MWEonevec + \MWEtwovec$ is the element-wise sum of the vectors of each of the component words of the MWE; and $\alpha \in [0,1]$ is a scalar which allows us to vary the weight of the respective components in predicting the compositionality of the compound. This helps us effectively capture the compositionality of the MWE with regards to each of its individual constituents.
+
+\subsection{Paraphrase Similarity}
+\label{sec:paraphrase}
+
+Assuming access to paraphrases of an MWE, another intuition is that if the MWE appears in similar contexts to the component words of its paraphrases, it is likely to be compositional. Each paraphrase provides an interpretation of the semantics of the MWE, e.g.\ \lex{olive oil} is \gloss{oil from olives}. The \ramisch MWE dataset (described in \secref{sec:datasets}) provides one or more paraphrases for each MWE contained in it. We calculate the similarity of the embeddings of the MWE and its paraphrases using the following three formulae:
+\begin{eqnarray*}
+  \begin{split}
+\firstpara = & \cos(\MWEvec, \paravec[1])\\
+\avgparapre = & \cos(\MWEvec, \sum_i \paravec[i])\\
+\avgparapost = & \frac{1}{N} \sum_{i=1}^N \cos(\MWEvec, \paravec[i])
+  \end{split}
+\end{eqnarray*}
+where \paravec[1] and \paravec[i] denote the embedding for the first (most popular) and $i$-th paraphrases, respectively.
+
+\subsection{Combined Approach}
+\label{sec:combined}
+
+Finally, we present the combined results from the two approaches stated above:
+\begin{eqnarray*}
+  \begin{split}
+    \combined = & \beta\max\left(\presum, \postsum\right) + \\
+    & (1 - \beta)\max\left(\firstpara, \avgparapre, \right.\\
+    & \,\,\,\left.\avgparapost\right)
+  \end{split}
+\end{eqnarray*}
+where $\beta\in[0,1]$ is a scalar weighting factor used to balance the effects of the two methods, in order to measure the extent to which the compositionality is determined by each of the methods. The choice of the $\max$ operator here to combine the sub-methods for each of the direct composition and paraphrase methods is that all methods tend to underestimate the compositionality (and empirically, it was found to be superior to taking the mean).
+
+\section{Experiments}
+\subsection{Datasets}
+\label{sec:datasets}
+We used three datasets for our experiments, evaluating each model's performance using Pearson's correlation coefficient ($r$) to compare the similarity scores obtained with the annotated compositionality scores provided in the dataset.
+\paragraph{\reddy}
+The dataset of \newcite{Reddy2011} contains 90 binary English noun compounds (``NCs''), along with human-annotated scores of their overall compositionality and component-specific compositionality, both ranging from 0 to 5. For our experiments, we consider the overall compositionality scores only.
+
+\paragraph{\ramisch}
+Similar to \reddy, the English dataset of \citet{Ramisch2016} contains 90 binary noun compounds with annotated scores of compositionality ranging from 0 to 5, both overall and component-specific (of which we use only the former). It also contains a list of paraphrases for each NC, presented in decreasing order of popularity among the annotators.
+
+\paragraph{\discoj[ADJ]}
+The English dataset from the DiSCo shared task \cite{Disco2011} containing a total of 348 binary compounds, comprising adjective--noun, verb--noun\textsubscript{subj}, and verb--noun\textsubscript{obj} pairs, along with their overall compositionality rating ranging from 0 to 100.
+We focus on the 144 adjective--noun pairs in this study.
+
+\paragraph{}
+The breakdown of compositionality scores across the three datasets in \tabref{tab:stats} indicates there is a reasonable distribution of data in terms of compositionality, with \reddy and \ramisch being roughly comparable and covering a broad (and somewhat balanced) spectrum of compositionalities, while \discoj is more skewed towards compositional usages, with lower standard deviation.
+
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{lSS@{\,}l}
+  \toprule
+  Dataset & $\mu$ & $\sigma$ \\
+  \midrule
+  \reddy & 53.2 & 30.0 \\
+  \ramisch & 52.6 & 35.0 \\
+  \discoj & 68.1 & 21.7 \\
+  \midrule
+  Overall & 59.7 & 29.0 \\
+\bottomrule
+\end{tabular}
+\caption{Mean ($\mu$) and standard deviation ($\sigma$) of the compositionality scores for the three datasets used in this research, over a normalised range $[0,100]$.}
+\label{tab:stats}
+\end{center}
+\end{table}
+
+\subsection{Embeddings}
+We made use of various embeddings, ranging from character- to document-level, in our study. Below is a description of each model along with how they are trained. 
+For paraphrases, we compute an element-wise sum of the embeddings for each of the component words to serve as the embedding of the phrase.
+
+\subsubsection{Word-level}
+A word embedding captures the context of a word in a document (in relation to other words) in the form of a vector representation. It tokenises text at the word level.
+
+\paragraph{\wordtovec}
+We trained \wordtovec \cite{Mikolov2013b} on a recent English Wikipedia dump,\footnote{\label{wiki}Dated 07-Jan-2019} after pre-processing (removing the formatting and punctuation) and concatenating each occurrence of the multiword expressions in our datasets (e.g.\ every occurrence of \textit{close shave} in the corpus becomes \textit{closeshave}). We make the greedy assumption that every occurence of the component words in sequence is an occurrence of the expression. We perform this token-level identification and manipulation of the corpus in order to obtain a single embedding for the expression, instead of a separate embeddings for the individual component words. In cases where the model still fails to generate an embedding for the expression (due to low token frequency), we assign a default compositionality score of 0.5 (neutral; based on a range of $[0,1]$).
+
+\begin{table*}[t!]
+\begin{center}
+\begin{tabular}{lSS@{\,}lSSSS@{\,}l}
+\toprule
+  Emb.\ method        & {\presum}  & \multicolumn{2}{c}{\postsum} & {\firstpara} & {\avgparapre} & {\avgparapost} & \multicolumn{2}{c}{\combined} \\
+  \midrule
+  \flair & 0.165 & 0.295 & ($\alpha$ = 0.1) & 0.334 & 0.399 & 0.492 & 0.492 & ($\beta$ = 0.0) \\
+  \flaircon & 0.181 & 0.314 & ($\alpha$ = 0.1) & 0.357 & 0.411 & 0.522 & 0.522 & ($\beta$ = 0.0) \\
+  \fasttextpre & 0.395 & 0.446 & ($\alpha$ = 0.7) & 0.242 & 0.531 & 0.703 & 0.703 & ($\beta$ = 0.0) \\
+  \fasttext & 0.464 & 0.532 & ($\alpha$ = 0.7) & 0.548 & 0.613 & 0.673 & 0.673 & ($\beta$ = 0.0) \\
+  \bert & 0.071 & 0.086 & ($\alpha$ = 1.0) & 0.242 & 0.531 & 0.583 & 0.583 & ($\beta$ = 0.0) \\
+  \bertcon & 0.089 & 0.111 & ($\alpha$ = 1.0) & 0.267 & 0.546 & 0.601 & 0.601 & ($\beta$ = 0.0) \\
+  \elmo & 0.420 & 0.459 & ($\alpha$ = 0.6) & 0.361 & 0.488 & 0.546 & 0.546 & ($\beta$ = 0.2) \\
+  \elmocon & 0.461 & 0.489 & ($\alpha$ = 0.6) & 0.373 & 0.492 & 0.552 & 0.627 & ($\beta$ = 0.2) \\
+  \wordtovec & \B 0.581 & \B 0.571 & ($\alpha$ = 0.6) & 0.443 & 0.510 & 0.504 & 0.677 & ($\beta$ = 0.9) \\
+  \infersent[\glove] & 0.321 & 0.427 & ($\alpha$ = 0.7) & \B 0.636 & 0.700 & \B 0.741 & \B 0.783 & ($\beta$ = 0.5) \\
+  \infersent[\fasttext] & 0.169 & 0.221 & ($\alpha$ = 0.6) & 0.488 & \B 0.712 & 0.636 & 0.774 & ($\beta$ = 0.0) \\
+  \doctovec & -0.157 & 0.039 & ($\alpha$ = 1.0) & 0.388 & 0.334 & 0.373 & 0.419 & ($\beta$ = 0.3) \\
+  \bottomrule
+\end{tabular}
+\caption{Pearson correlation coefficient for compositionality prediction results on the \ramisch dataset.}
+\label{tab:ramisch}
+\end{center}
+\end{table*}
+
+\begin{table}[t!]
+\begin{center}
+\begin{tabular}{lSS@{\,}l}
+  \toprule
+  Emb.\ method        & {\presum}  & \multicolumn{2}{c}{\postsum} \\
+  \midrule
+  
+  \flair & -0.127 & 0.024 & ($\alpha$ = 0.0) \\
+  \flaircon & 0.012 & 0.172 & ($\alpha$ = 0.0) \\
+  \fasttextpre & 0.223 & 0.285 & ($\alpha$ = 0.3,0.4) \\
+  \fasttext & 0.217 & 0.287 & ($\alpha$ = 0.3,0.4) \\
+  \bert & 0.304 & 0.352 & ($\alpha$ = 0.2) \\
+  \bertcon & 0.313 & 0.377 & ($\alpha$ = 0.2) \\
+  \elmo & 0.339 & 0.406 & ($\alpha$ = 0.5) \\
+  \elmocon & 0.387 & 0.416 & ($\alpha$ = 0.5) \\
+  \wordtovec & \B 0.634 & \B 0.622 & ($\alpha$ = 0.6) \\
+  \infersent[\glove] & 0.413 & 0.500 & ($\alpha$ = 0.5) \\
+  \infersent[\fasttext] & 0.401 & 0.527 & ($\alpha$ = 0.6) \\
+  \doctovec & -0.049 & 0.025 & ($\alpha$ = 0.0) \\
+\bottomrule
+\end{tabular}
+\caption{Pearson correlation coefficient for compositionality prediction results on the \reddy dataset.}
+\label{tab:reddy}
+\end{center}
+\end{table}
+
+\begin{table}[t!]
+\begin{center}
+\begin{tabular}{lSS@{\,}l}
+  \toprule
+  Emb.\ method        & {\presum}  & \multicolumn{2}{c}{\postsum} \\
+  \midrule
+  
+  \flair & 0.261 & 0.291 & ($\alpha$ = 0.4) \\
+  \flaircon & 0.280 & 0.315 & ($\alpha$ = 0.4)  \\
+  \fasttextpre & 0.339 & 0.353 & ($\alpha$ = 0.6,0.7) \\
+  \fasttext & 0.374 & 0.419 & ($\alpha$ = 0.4) \\
+  \bert & 0.154 & 0.177 & ($\alpha$ = 0.3,0.4) \\
+  \bertcon & 0.163 & 0.189 & ($\alpha$ = 0.3) \\
+  \elmo & 0.253 & 0.287 & ($\alpha$ = 0.5) \\
+  \elmocon & 0.301 & 0.319 & ($\alpha$ = 0.5) \\
+  \wordtovec & \B 0.427 & \B 0.419 & ($\alpha$ = 0.4) \\
+  \infersent[\glove] & 0.321 & 0.315 & ($\alpha$ = 0.4) \\
+  \infersent[\fasttext] & 0.001 & 0.202 & ($\alpha$ = 1.0) \\
+  \doctovec & -0.023 & 0.003 & ($\alpha$ = 0.0) \\
+\bottomrule
+\end{tabular}
+\caption{Pearson correlation coefficient for compositionality prediction results on the \discoj[ADJ] dataset.}
+\label{tab:discoj}
+\end{center}
+\end{table}
+
+\subsubsection{Character-level}
+Character-level embeddings can generate vectors for words based on $n$-gram character aggregations. This means they can generate embeddings for out-of-vocabulary (OOV) words, as well new words or misspelled words. It tokenises text at the character level.
+
+\paragraph{\fasttext}
+We used the 300-dimensional \fasttext model pre-trained on Common Crawl and Wikipedia using CBOW (\fasttextpre), as well as one trained over the same Wikipedia corpus\textsuperscript{\ref{wiki}} using skip-gram (\fasttext). Again, since \fasttext \cite{Bojanowski2017} assumes all words to be whitespace delimited, we treat the expression as a fused compound.
+
+\paragraph{Contextualised Embeddings}
+Unlike classical embedding techniques, contextualised embeddings capture the semantics of a word or phrase in a manner which is sensitised to the context of usage.
+
+We used the pretrained implementations of \elmo \cite{Peters2018} and \bert \cite{Devlin2018} found in the \flair framework.\footnote{\url{https://github.com/zalandoresearch/flair}} The framework also has a contextualised string embedding model of its own, also named \flair \cite{Akbik2018}.
+
+We supplied sentences extracted from the Brown corpus where available in order to derive a contextualised interpretation. We extracted 25 sentences at random per MWE, except where there were fewer sentences in the corpus.
+
+However, we also included a naive context-independent implementation in our study, consistent with the other models, following the intuition that the relative compositionality of even a novel compound can often be predicted from its component words alone (e.g.\ \textit{giraffe potato} having the plausible compositional interpretation of a potato shaped like a giraffe vs.\ \textit{couch intelligence} having no natural interpretation).
+
+\subsubsection{Document-level}
+Document embeddings aggregate from words to documents, generating vector representations for entire documents.
+
+\paragraph{\infersent}
+We used two versions of \infersent \cite{Conneau2017b}: \infersent[\glove] and \infersent[\fasttext]. Each generates a representation of 300 dimensions, trained over the 1,000,000 most popular English words using \glove \cite{Jeffrey2014} and \fasttext, respectively.
+
+\paragraph{\doctovec}
+We used the gensim implementation of \doctovec \cite{Le+:2014,Lau:Baldwin:2016b} pretrained on Wikipedia data using the \wordtovec skip-gram models pretrained on Wikipedia and AP News.\footnote{\url{https://github.com/jhlau/doc2vec}}
+
+
+
+\section{Results and Discussion}
+\label{ssec:accessibility}
+
+The results from our experiments on the \ramisch, \reddy and \discoj datasets can be found in \tabref[s]{tab:ramisch}, \ref{tab:reddy} and \ref{tab:discoj}, respectively with the best performing $\alpha$s and $\beta$s for each embedding method.
+
+We observe that the $\alpha$s in \tabref{tab:ramisch} are high, implying the compound nouns in \ramisch are more compositional in terms of their head nouns. Similarly, the lower $\alpha$ scores in \tabref{tab:reddy} suggest \reddy's compound nouns are more dependent on their modifiers. \tabref{tab:discoj}, on the other hand, shows the $\alpha$s embracing the entire range of $[0,1]$. This suggests the adjective--noun pairs in \discoj are spread in terms of their dependency on their constituents, which also depends on the embedding method used. Overall, the methods are sensitive to the choice of the $\alpha$ hyper-parameter, with \elmo and \infersent being particularly sensitive and showing substantial change in output with change in $\alpha$.
+
+We see that for \ramisch (\tabref{tab:ramisch}), \wordtovec achieves the highest scores among the direct combination approaches, while \infersent outperforms the other methods among the paraphrase approaches, and \wordtovec falls behind character embedding models like \fasttext, \elmo and \bert (even when the latter two were performed without context). The lower $\beta$ scores also show the other models favouring the paraphrase approaches, while the high $\beta$ score for \wordtovec shows its preference for direct combination.
+
+We observe that, consistent with its performance on \ramisch, \wordtovec performs the best of all models for the direct combination methods.
+
+Overall, we observe that \wordtovec is consistent in providing the best results based on the methods outlined in \secref{sec:direct}, while \fasttext and \infersent come a close second and third, respectively.
+
+% Min: no longer used as of ACL 2018, following ACL exec's decision to
+% remove this extra workflow that was not executed much.
+% BEGIN: remove
+%% \section{XML conversion and supported \LaTeX\ packages}
+
+%% Following ACL 2014 we will also we will attempt to automatically convert 
+%% your \LaTeX\ source files to publish papers in machine-readable 
+%% XML with semantic markup in the ACL Anthology, in addition to the 
+%% traditional PDF format.  This will allow us to create, over the next 
+%% few years, a growing corpus of scientific text for our own future research, 
+%% and picks up on recent initiatives on converting ACL papers from earlier 
+%% years to XML. 
+
+%% We encourage you to submit a ZIP file of your \LaTeX\ sources along
+%% with the camera-ready version of your paper. We will then convert them
+%% to XML automatically, using the LaTeXML tool
+%% (\url{http://dlmf.nist.gov/LaTeXML}). LaTeXML has \emph{bindings} for
+%% a number of \LaTeX\ packages, including the ACL 2018 stylefile. These
+%% bindings allow LaTeXML to render the commands from these packages
+%% correctly in XML. For best results, we encourage you to use the
+%% packages that are officially supported by LaTeXML, listed at
+%% \url{http://dlmf.nist.gov/LaTeXML/manual/included.bindings}
+% END: remove
+
+%\section{Discussion}
+
+It is not surprising that \infersent, being a document-level embedding model, works better with paraphrase data than the other models. However, \doctovec has really poor scores overall across the three datasets. It does, however, redeem itself with the paraphrases, with substantially higher scores than the direct approach but still quite a way behind the top-scoring methods. 
+
+We also see that the paraphrase approach seems to achieve much greater results across all models, suggesting this could be a direction for future study (noting the requirement for paraphrase data for the MWE in order to apply this method, which has inherent scalability limitations). The combined approach seems to favour the paraphrase results as well, based on the relative $\beta$ values.
+
+One of the reasons \wordtovec did not work as well with the paraphrases could be the naive assumption that the \presum is a representation of the paraphrase itself. As we see from the results across the datasets and methods, \presum does not entirely capture the compositionality of the MWE, so it is reasonable to assume that a paraphrase would not be accurately represented by  \presum either. 
+
+We see that \fasttext provides us with impressive scores throughout, and we notice a slight improvement when trained on the same corpus as \wordtovec. However, there is a huge gap in the performance between \wordtovec and \fasttext, especially in the case of \reddy (which could be an issue of a heavier representation of a particular level of compositionality, say).
+
+We also notice that, unlike the noun compounds in \reddy and \ramisch, there is less variance in the relative scores of each method in the case of \discoj[ADJ], with overall results dropping appreciably, and the best-performing \wordtovec dropping back in raw $r$ value compared to noun--noun pairs.
+
+In terms of the contextualised embeddings, we notice that across the three models, there is only a slight increase in correlation when contextualised embeddings are used. This suggests that even with context, these modern embedding techniques are unable to capture non-compositionality as well as their simpler counterparts. 
+
+\section{Conclusion}
+\label{sec:length}
+
+In this paper, we investigated the modelling capabilities of various embedding techniques applied to the specific task of predicting the MWE compositionality, to see how well they model a mixture of compositionalities in the dataset. Our results indicate that modern character- and document-level embedding methods are inferior to the simple \wordtovec approach. However, the promising results of \fasttext and \infersent across the datasets indicate that, among the more modern methods, they are better equiped to handle non-compositionality as they did not require much manipulation of the corpus or knowledge of the MWEs beforehand. We also found that the paraphrase approach results in greater correlation scores across the models.
+
+In future work, we intend to properly tune our hyperparameters over held-out data, and experiment with other languages and language-independent techniques, including other models.
+
+%bsalehi: commented this part and will uncomment for camera ready
+%\section*{Acknowledgments}
+%We would like to thank the curators and annotators of the datasets used in this study.
+%We would also like to thank Chris Biemann from the University of Hamburg for making the dataset from the DiSCo shared task available to us.
+
+%\noindent {\bf Preparing References:} \\
+%Include your own bib file like this:
+%\verb|\bibliographystyle{acl_natbib}|
+%\verb|\bibliography{naaclhlt2019}| 
+
+%where \verb|naaclhlt2019| corresponds to a naaclhlt2019.bib file.
+\bibliography{naaclhlt2019}
+\bibliographystyle{acl_natbib}
+
+%\appendix
+
+%\section{Appendices}
+%\label{sec:appendix}
+%--Appendices here--
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
