@@ -83,6 +83,7 @@
 
 \usepackage{graphicx}
 \usepackage{pgfplots}
+\usepackage[dvipsnames]{xcolor}
 
 \begin{filecontents}{alpha_reddy.dat}
 X	elmo	bert	fasttext	w2v	d2v	is1	is2	flair
@@ -491,7 +492,7 @@ We used the gensim implementation of \doctovec \cite{Le+:2014,Lau:Baldwin:2016b}
 
 The results from our experiments on the \ramisch, \reddy and \discoj datasets can be found in \tabref[s]{tab:ramisch}, \ref{tab:reddy} and \ref{tab:discoj}, respectively with the best performing $\alpha$s and $\beta$s for each embedding method.
 
-We observe that the $\alpha$s in \tabref{tab:ramisch} are high, implying the compound nouns in \ramisch are more compositional in terms of their head (second) nouns. Similarly, the lower $\alpha$ scores in \tabref{tab:reddy} suggest \reddy's compound nouns are more dependent on their modifiers or first nouns. \tabref{tab:discoj}, on the other hand, shows the $\alpha$s embracing the entire range of $[0,1]$. This suggests the adjective--noun pairs in \discoj are spread in terms of their dependency on their constituents, which also depends on the embedding method used. Overall, the methods are sensitive to the choice of the $\alpha$ hyper-parameter, with \elmo and \infersent being particularly sensitive and showing substantial change in output with change in $\alpha$.
+We observe that the $\alpha$s in \tabref{tab:ramisch} are high, implying the compound nouns in \ramisch are more compositional in terms of their head (second) nouns. Similarly, the lower $\alpha$ scores in \tabref{tab:reddy} suggest \reddy's compound nouns are more dependent on their modifiers or first nouns. \tabref{tab:discoj}, on the other hand, shows the $\alpha$s embracing the entire range of $[0,1]$. This suggests the adjective--noun pairs in \discoj are spread in terms of their dependency on their constituents, which also depends on the embedding method used. Overall, the methods are sensitive to the choice of the $\alpha$ hyper-parameter, with \elmo and \infersent being particularly sensitive and showing substantial change in output with change in $\alpha$ (\figref[s]{fig:sensReddy},\ref{fig:sensRamisch} and \ref{fig:sensDiscoj}).
 
 We see that for \ramisch (\tabref{tab:ramisch}), \wordtovec achieves the highest scores among the direct combination metrics, while \infersent outperforms the other methods among the paraphrase metrics, and \wordtovec falls behind character embedding models like \fasttext, \elmo and \bert (even when the latter two were performed without context). The lower $\beta$ scores also show the other models favouring the paraphrase metrics, while the high $\beta$ score for \wordtovec shows its preference for direct combination.
 
@@ -536,6 +537,8 @@ We see that \fasttext provides us with impressive scores throughout, and we noti
 We also notice that, unlike the noun compounds in \reddy and \ramisch, there is less variance in the relative scores of each method in the case of \discoj[ADJ], with overall results dropping appreciably, and the best-performing \wordtovec dropping back in raw $r$ value compared to noun--noun pairs.
 
 In terms of the contextualised embeddings, we notice that across the three models, there is only a slight increase in correlation when contextualised embeddings are used. This suggests that even with context, these modern embedding techniques are unable to capture non-compositionality as well as their simpler counterparts.
+
+Further analysis reveals that most models struggle to accurately predict the compositionality of idiomatic noun compounds, as well as semi-compositional terms wherein one of the constituent words are used in a metaphoric sense. In \reddy, we observe this for \textit{silver bullet} and \textit{snail mail}. Interestingly, while \bert struggles to effectively model compositionality throughout, it is surprisingly the only model able to perfectly predict the compositionality of \textit{snail mail} (which appears as an extreme outlier). This suggests that \bert might be more successful using a different metric. In the case of the adjective-noun phrases in \discoj, we see that the models are still unable to accurately predict the compositionality of non-compositional phrases (like \textit{big fish}, \textit{heavy metal} and \textit{red tape}). This time, however, they are also unable to capture \textit{mobile phone} and \textit{floppy disk}, perhaps because of their relatively archaic use.
 
 \section{Conclusion}
 \label{sec:length}
