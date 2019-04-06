@@ -83,7 +83,7 @@
 
 \usepackage{graphicx}
 \usepackage{pgfplots}
-\usepackage[dvipsnames]{xcolor}
+\usepackage{xcolor}
 
 \begin{filecontents}{alpha_reddy.dat}
 X	elmo	bert	fasttext	w2v	d2v	is1	is2	flair
@@ -142,12 +142,12 @@ X	elmo	bert	fasttext	w2v	d2v	is1	is2	flair
 from Multiword Expressions}
 
 \author{Navnita Nandakumar \qquad
-  Timothy Baldwin \qquad
-  Bahar Salehi\\
-	Department of Computing and Information Systems \\
+  Bahar Salehi \qquad
+  Timothy Baldwin \\
+  School of Computing and Information Systems \\
 The University of Melbourne \\
 Victoria 3010, Australia \\
-  {\tt nnandakumar@student.unimelb.edu.au} \qquad {\tt \{tbaldwin|salehi.b\}@unimelb.edu.au}   \\
+ {\smaller {\tt nnandakumar@student.unimelb.edu.au} \qquad {\tt \{tbaldwin|salehi.b\}@unimelb.edu.au} }  \\
 }
 
 \date{}
@@ -156,11 +156,14 @@ Victoria 3010, Australia \\
 \maketitle
 
 \begin{abstract}
-  In this paper, we apply various embedding methods on multiword
+  In this paper, we apply various embedding methods to multiword
   expressions to study how well they capture the nuances of
-  non-compositional data. Our results from a pool of word-, character-,
+  non-compositional data. Our results from a range of word-, character-,
   and document-level embbedings suggest that \wordtovec performs the
-  best, followed by \fasttext and \infersent. Moreover, we find that recently-proposed contextualised embedding models such as \bert and \elmo are not adept at handling non-compositionality in multiword expressions. 
+  best, followed by \fasttext and \infersent. Moreover, we find that
+  recently-proposed contextualised embedding models such as \bert and
+  \elmo are not adept at handling non-compositionality in multiword
+  expressions.
 \end{abstract}
 
 \section{Introduction}
@@ -168,7 +171,7 @@ Modern embedding models, including contextual embeddings, have been shown to wor
 
 At present, there exists no definitive metric to measure the modelling capabilities of an embedding technique across a spectrum of non-compositionality, especially in the case of newer, contextualised representations, such as \elmo and \bert.
 
-In this study, we apply various embedding methods to the task of determining the compositionality of English multiword expressions (``MWEs''), specifically noun--noun and adjective--noun pairs, to test their performance on data representing a range of compositionality \cite{Sag2002}. Compositionality prediction can be modeled as a regression task \cite{Baldwin2010} that involves mapping an MWE onto a continuous scale, representing its compositionality as a whole or with respect to each of its components. For example, \lex{application form} can be considered to be quite compositional, while \lex{sitting duck}\footnote{A \lex{sitting duck} means a person or thing with no protection against an attack or other source of danger.} is considered to be idiomatic or non-compositional. \lex{Close shave}\footnote{A \lex{close shave} is a narrow escape from danger or disaster.} could be seen as partially compositional, heavily compositional with regards to the first word and less compositional with regards to the second. In this study, we focus on predicting the compositionality of the MWE as a whole. Although we conduct our experiments on English datasets, they can be applied to other languages with ease as we do not perform any kind of language-specific manipulation of the data.
+In this study, we apply various embedding methods to the task of determining the compositionality of English multiword expressions (``MWEs''), specifically noun--noun and adjective--noun pairs, to test their performance on data representing a range of compositionality \cite{Sag2002}. Compositionality prediction can be modeled as a regression task \cite{Baldwin2010} that involves mapping an MWE onto a continuous scale, representing its compositionality as a whole or with respect to each of its components. For example, \lex{application form} can be considered to be quite compositional, while \lex{sitting duck}\footnote{A \lex{sitting duck} means ``a person or thing with no protection against an attack or other source of danger.''} is considered to be idiomatic or non-compositional. \lex{Close shave}\footnote{A \lex{close shave} is ``a narrow escape from danger or disaster.''} could be seen as partially compositional, heavily compositional with regards to the first word and less compositional with regards to the second. In this study, we focus on predicting the compositionality of the MWE as a whole. Although we conduct our experiments on English datasets, they can be applied to other languages with ease as we do not perform any kind of language-specific manipulation of the data.
 
 The main contributions of this paper are:
 \begin{compactenum}[(i)]
@@ -180,9 +183,25 @@ The main contributions of this paper are:
 \section{Related Work}
 Although vector space models have been popular since the 1990s, it was only after \citet{Coll2018} proposed a unified neural network architecture to learning distributed word representations and demonstrated its performance on downstream tasks, that embedding learning established a footing in NLP, with \wordtovec \cite{Mikolov2013} being the catalyst to the ``embedding revolution''.
 
-Language embeddings are an example of an unsupervised representation learning application done well. They are preferred primarily because they can be learned from unannotated corpora and, therefore, eliminate the need for annotation (which is expensive and time-consuming).
+Language embeddings are an example of an unsupervised representation
+learning application done well. They are preferred primarily because
+they can be learned from unannotated corpora and, therefore, eliminate
+the need for manual annotation (which is expensive and time-consuming).
 
-\citet{Salehi2015} were the first to apply word embeddings to the task of predicting the compositionality of MWEs. The assumption is that the compositionality of an MWE is proportional to the relative similarity between each of the components and the overall MWE, represented by their respective embeddings. While this method remains state-of-the-art for the task of MWE compositionality prediction, it requires automatic token-level pre-identification of each MWE in the training corpus in order to train a model. This is not ideal, as it means the model will need to be retrained for a new set of MWEs. It also requires ``complete'' knowledge of the MWEs before the training step, which is impractical in most cases.
+\citet{Salehi2015} were the first to apply word embeddings to the task
+of predicting the compositionality of MWEs. The assumption is that the
+compositionality of an MWE is proportional to the relative similarity
+between each of the components and the overall MWE, represented by their
+respective embeddings. This method was recently tuned variously by
+\citet{Cordeiro+:2019} and remains state-of-the-art for the task of MWE
+compositionality prediction, but has the downside that it requires
+automatic token-level pre-identification of each MWE in the training
+corpus in order to train a model (i.e.\ all occurrences of \lex{sitting
+  duck} need to be pre-tokenised to a single token, such as
+\lex{sitting\_duck}). This is not ideal, as it means the model will need
+to be retrained for a new set of MWEs (as the tokenisation will
+necessarily change). It also requires ``complete'' knowledge of the MWEs
+before the training step, which is impractical in most cases.
 
 Character-level embedding models \cite{Hakimi2018} are one possible solution to the fixed-vocabulary problem, in being able to handle an unbounded vocabulary, including MWEs. Document embeddings \cite{Le+:2014,Conneau2017} are also highly relevant to dynamically generating embeddings for MWEs, as they generate representations of arbitrary spans of text, which are potentially able to capture the context of use of the MWE.
 
@@ -198,12 +217,14 @@ Intuitively, an MWE appearing in similar contexts to its components is likely to
   \begin{split}
     \presum = & \cos(\MWEvec, \MWEonevec + \MWEtwovec)\\
     \postsum = & \alpha \cos(\MWEvec, \MWEonevec) + \\  
-    & (1 - \alpha) \cos(\MWEvec, \MWEtwovec)\\
+    & (1 - \alpha) \cos(\MWEvec, \MWEtwovec)\,,
   \end{split}
 \end{eqnarray*}
 where: \MWEvec, \MWEonevec, and \MWEtwovec are the embeddings for the combined MWE, first component and second component, respectively;\footnote{All methods are presented and evaluated in terms of two-element MWEs in this work, but are trivially generalisable to multi-element MWEs.} $\MWEonevec + \MWEtwovec$ is the element-wise sum of the vectors of each of the component words of the MWE; and $\alpha \in [0,1]$ is a scalar which allows us to vary the weight of the respective components in predicting the compositionality of the compound. This helps us effectively capture the compositionality of the MWE with regards to each of its individual constituents.
 
-We do not perform any tuning on $\alpha$ and are, as such, overfitting as we select the best performing $\alpha$ post hoc. However, this is done to obtain the best possible scores using this metric as any hyperparameter tuning performed is bound to produce lower results that those reported.
+We do not perform any tuning of $\alpha$ over held-out data and are, as
+such, overfitting as we select the best-performing $\alpha$ post
+hoc. We do, however, present analysis of hyper-parameter sensitivity in .
 
 \subsection{Paraphrase Similarity}
 \label{sec:paraphrase}
@@ -213,7 +234,7 @@ Assuming access to paraphrases of an MWE, another intuition is that if the MWE a
   \begin{split}
 \firstpara = & \cos(\MWEvec, \paravec[1])\\
 \avgparapre = & \cos(\MWEvec, \sum_i \paravec[i])\\
-\avgparapost = & \frac{1}{N} \sum_{i=1}^N \cos(\MWEvec, \paravec[i])
+\avgparapost = & \frac{1}{N} \sum_{i=1}^N \cos(\MWEvec, \paravec[i])\,,
   \end{split}
 \end{eqnarray*}
 where \paravec[1] and \paravec[i] denote the embedding for the first (most popular) and $i$-th paraphrases, respectively.
@@ -269,18 +290,21 @@ The breakdown of compositionality scores across the three datasets in \tabref{ta
 
 
 \begin{figure}[H]
-\caption{\label{fig:sensReddy}Sensitivity analysis of $\alpha$ (\reddy)}
 \begin{tikzpicture}
 \begin{axis}[
 axis lines=middle,
-ymin=0.0,
 ymax=1.0,
+ymin=-0.2,
 xmin=0.0,
 xmax=1.0,
+  axis x line = bottom,
     x label style={at={(axis description cs:0.5,-0.1)},anchor=north},
     y label style={at={(axis description cs:-0.1,.5)},rotate=90,anchor=south},
     xlabel= $\alpha$,
   ylabel=$r$,
+  legend columns=2, 
+  legend pos=north east,
+  legend style={nodes={scale=0.65, transform shape}},
   xticklabel style = {rotate=30,anchor=east},
    enlargelimits = false,
   xticklabels from table={alpha_reddy.dat}{X},xtick=data]
@@ -302,22 +326,29 @@ xmax=1.0,
 \addlegendentry{\flair}]
 \end{axis}
 \end{tikzpicture}
+\caption{Sensitivity analysis of $\alpha$ (\reddy)}
+\label{fig:sensReddy}
 \end{figure}
+
+
 \begin{figure}[H]
-\caption{\label{fig:sensRamisch}Sensitivity analysis of $\alpha$ (\ramisch)}
 \begin{tikzpicture}
 \begin{axis}[
-axis lines=middle,
-ymin=0.0,
-ymax=1.0,
-xmin=0.0,
-xmax=1.0,
-    x label style={at={(axis description cs:0.5,-0.1)},anchor=north},
-    y label style={at={(axis description cs:-0.1,.5)},rotate=90,anchor=south},
-    xlabel= $\alpha$,
+  axis lines=middle,
+  ymin=-0.2,
+  ymax=1.0,
+  xmin=0.0,
+  xmax=1.0,
+  x label style={at={(axis description cs:0.5,-0.1)},anchor=north},
+  y label style={at={(axis description cs:-0.1,.5)},rotate=90,anchor=south},
+  xlabel= $\alpha$,
   ylabel=$r$,
+  axis x line = bottom,
+  legend columns=2, 
+  legend pos=north east,
+  legend style={nodes={scale=0.65, transform shape}},
   xticklabel style = {rotate=30,anchor=east},
-   enlargelimits = false,
+  enlargelimits = false,
   xticklabels from table={alpha_ramisch.dat}{X},xtick=data]
 \addplot[orange,thick] table [y=elmo,x=X]{alpha_ramisch.dat};
 \addlegendentry{\elmo}
@@ -337,22 +368,29 @@ xmax=1.0,
 \addlegendentry{\flair}]
 \end{axis}
 \end{tikzpicture}
+\caption{Sensitivity analysis of $\alpha$ (\ramisch)}
+\label{fig:sensRamisch}
 \end{figure}
+
+
 \begin{figure}[H]
-\caption{\label{fig:sensDiscoj}Sensitivity analysis of $\alpha$ (\discoj)}
 \begin{tikzpicture}
 \begin{axis}[
 axis lines=middle,
-ymin=0.0,
 ymax=1.0,
-xmin=0.0,
+ymin=-0.2,
 xmax=1.0,
+xmin=0.0,
     x label style={at={(axis description cs:0.5,-0.1)},anchor=north},
     y label style={at={(axis description cs:-0.1,.5)},rotate=90,anchor=south},
     xlabel= $\alpha$,
-  ylabel=$r$,
+    ylabel=$r$,
+  legend columns=2, 
+  legend pos=north east,
+  legend style={nodes={scale=0.65, transform shape}},
   xticklabel style = {rotate=30,anchor=east},
-   enlargelimits = false,
+  enlargelimits = false,
+  axis x line = bottom,
   xticklabels from table={alpha_discoj.dat}{X},xtick=data]
 \addplot[orange,thick] table [y=elmo,x=X]{alpha_discoj.dat};
 \addlegendentry{\elmo}
@@ -372,6 +410,8 @@ xmax=1.0,
 \addlegendentry{\flair}]
 \end{axis}
 \end{tikzpicture}
+\caption{Sensitivity analysis of $\alpha$ (\discoj)}
+\label{fig:sensDiscoj}
 \end{figure}
 
 \subsection{Embeddings}
