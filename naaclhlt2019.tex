@@ -171,7 +171,7 @@ Modern embedding models, including contextual embeddings, have been shown to wor
 
 At present, there exists no definitive metric to measure the modelling capabilities of an embedding technique across a spectrum of non-compositionality, especially in the case of newer, contextualised representations, such as \elmo and \bert.
 
-In this study, we apply various embedding methods to the task of determining the compositionality of English multiword expressions (``MWEs''), specifically noun--noun and adjective--noun pairs, to test their performance on data representing a range of compositionality \cite{Sag2002}. Compositionality prediction can be modeled as a regression task \cite{Baldwin2010} that involves mapping an MWE onto a continuous scale, representing its compositionality as a whole or with respect to each of its components. For example, \lex{application form} can be considered to be quite compositional, while \lex{sitting duck}\footnote{A \lex{sitting duck} means ``a person or thing with no protection against an attack or other source of danger.''} is considered to be idiomatic or non-compositional. \lex{Close shave}\footnote{A \lex{close shave} is ``a narrow escape from danger or disaster.''} could be seen as partially compositional, heavily compositional with regards to the first word and less compositional with regards to the second. In this study, we focus on predicting the compositionality of the MWE as a whole. Although we conduct our experiments on English datasets, they can be applied to other languages with ease as we do not perform any kind of language-specific manipulation of the data.
+In this study, we apply various embedding methods to the task of determining the compositionality of English multiword expressions (``MWEs''), specifically noun--noun and adjective--noun pairs, to test their performance on data representing a range of compositionality \cite{Sag:2002}. Compositionality prediction can be modeled as a regression task \cite{Baldwin2010} that involves mapping an MWE onto a continuous scale, representing its compositionality as a whole or with respect to each of its components. For example, \lex{application form} can be considered to be quite compositional, while \lex{sitting duck}\footnote{A \lex{sitting duck} means ``a person or thing with no protection against an attack or other source of danger.''} is considered to be idiomatic or non-compositional. \lex{Close shave}\footnote{A \lex{close shave} is ``a narrow escape from danger or disaster.''} could be seen as partially compositional, heavily compositional with regards to the first word and less compositional with regards to the second. In this study, we focus on predicting the compositionality of the MWE as a whole. Although we conduct our experiments on English datasets, they can be applied to other languages with ease as we do not perform any kind of language-specific manipulation of the data.
 
 The main contributions of this paper are:
 \begin{compactenum}[(i)]
@@ -224,7 +224,7 @@ where: \MWEvec, \MWEonevec, and \MWEtwovec are the embeddings for the combined M
 
 We do not perform any tuning of $\alpha$ over held-out data and are, as
 such, overfitting as we select the best-performing $\alpha$ post
-hoc. We do, however, present analysis of hyper-parameter sensitivity in .
+hoc. We do, however, present analysis of hyper-parameter sensitivity in \secref{ssec:accessibility}.
 
 \subsection{Paraphrase Similarity}
 \label{sec:paraphrase}
@@ -249,7 +249,7 @@ Finally, we present the combined results from the two metrics stated above:
   \begin{split}
     \combined = & \beta\max\left(\presum, \postsum\right) + \\
     & (1 - \beta)\max\left(\firstpara, \avgparapre, \right.\\
-    & \,\,\,\left.\avgparapost\right)
+    & \,\,\,\left.\avgparapost\right)\,,
   \end{split}
 \end{eqnarray*}
 where $\beta\in[0,1]$ is a scalar weighting factor used to balance the effects of the two methods, in order to measure the extent to which the compositionality is determined by each of the methods. The choice of the $\max$ operator here to combine the sub-methods for each of the direct composition and paraphrase methods is that all methods tend to underestimate the compositionality (and empirically, it was found to be superior to taking the mean).
@@ -265,9 +265,8 @@ The dataset of \newcite{Reddy2011} contains 90 binary English noun compounds (``
 Similar to \reddy, the English dataset of \citet{Ramisch2016} contains 90 binary noun compounds with annotated scores of compositionality ranging from 0 to 5, both overall and component-specific (of which we use only the former). It also contains a list of paraphrases for each NC, presented in decreasing order of popularity among the annotators.
 
 \paragraph{\discoj[ADJ]}
-The English dataset from the DiSCo shared task \cite{Disco2011} containing a total of 348 binary phrases, comprising adjective--noun, verb--noun\textsubscript{subj}, and verb--noun\textsubscript{obj} pairs, along with their overall compositionality rating ranging from 0 to 100. The phrases were extracted semi-automatically and their relations were assigned by patterns and checked manually. The compositionality scores were collected from Amazon Mechanical Turk, where workers were presented 4-5 different, randomly sampled sentences from the UK English WACKy corpora. We focus on the 144 adjective--noun pairs in this study.
+The English dataset from the DiSCo shared task \cite{Disco2011} containing a total of 348 binary phrases, comprising adjective--noun, verb--noun\textsubscript{subj}, and verb--noun\textsubscript{obj} pairs, along with their overall compositionality rating ranging from 0 to 100. The phrases were extracted semi-automatically and their relations were assigned by patterns and checked manually. The compositionality scores were collected from Amazon Mechanical Turk, where workers were presented 4--5 randomly sampled sentences from the UK English WACKy corpora. We focus on the 144 adjective--noun pairs in this study.
 
-\paragraph{}
 The breakdown of compositionality scores across the three datasets in \tabref{tab:stats} indicates there is a reasonable distribution of data in terms of compositionality, with \reddy and \ramisch being roughly comparable and covering a broad (and somewhat balanced) spectrum of compositionalities, while \discoj is more skewed towards compositional usages, with lower standard deviation.
 
 \begin{table}[t]
@@ -289,140 +288,55 @@ The breakdown of compositionality scores across the three datasets in \tabref{ta
 \end{table}
 
 
-\begin{figure}[H]
-\begin{tikzpicture}
-\begin{axis}[
-axis lines=middle,
-ymax=1.0,
-ymin=-0.2,
-xmin=0.0,
-xmax=1.0,
-  axis x line = bottom,
-    x label style={at={(axis description cs:0.5,-0.1)},anchor=north},
-    y label style={at={(axis description cs:-0.1,.5)},rotate=90,anchor=south},
-    xlabel= $\alpha$,
-  ylabel=$r$,
-  legend columns=2, 
-  legend pos=north east,
-  legend style={nodes={scale=0.65, transform shape}},
-  xticklabel style = {rotate=30,anchor=east},
-   enlargelimits = false,
-  xticklabels from table={alpha_reddy.dat}{X},xtick=data]
-\addplot[orange,thick] table [y=elmo,x=X]{alpha_reddy.dat};
-\addlegendentry{\elmo}
-\addplot[green,thick] table [y= fasttext,x=X]{alpha_reddy.dat};
-\addlegendentry{\fasttext}]
-\addplot[blue,thick] table [y= d2v,x=X]{alpha_reddy.dat};
-\addlegendentry{\doctovec}]
-\addplot[brown,thick] table [y= is1,x=X]{alpha_reddy.dat};
-\addlegendentry{\infersent[\glove]}]
-\addplot[red,thick] table [y= is2,x=X]{alpha_reddy.dat};
-\addlegendentry{\infersent[\fasttext]}]
-\addplot[yellow,thick] table [y= w2v,x=X]{alpha_reddy.dat};
-\addlegendentry{\wordtovec}]
-\addplot[purple,thick] table [y= bert,x=X]{alpha_reddy.dat};
-\addlegendentry{\bert}]
-\addplot[pink,thick] table [y= flair,x=X]{alpha_reddy.dat};
-\addlegendentry{\flair}]
-\end{axis}
-\end{tikzpicture}
-\caption{Sensitivity analysis of $\alpha$ (\reddy)}
-\label{fig:sensReddy}
-\end{figure}
-
-
-\begin{figure}[H]
-\begin{tikzpicture}
-\begin{axis}[
-  axis lines=middle,
-  ymin=-0.2,
-  ymax=1.0,
-  xmin=0.0,
-  xmax=1.0,
-  x label style={at={(axis description cs:0.5,-0.1)},anchor=north},
-  y label style={at={(axis description cs:-0.1,.5)},rotate=90,anchor=south},
-  xlabel= $\alpha$,
-  ylabel=$r$,
-  axis x line = bottom,
-  legend columns=2, 
-  legend pos=north east,
-  legend style={nodes={scale=0.65, transform shape}},
-  xticklabel style = {rotate=30,anchor=east},
-  enlargelimits = false,
-  xticklabels from table={alpha_ramisch.dat}{X},xtick=data]
-\addplot[orange,thick] table [y=elmo,x=X]{alpha_ramisch.dat};
-\addlegendentry{\elmo}
-\addplot[green,thick] table [y= fasttext,x=X]{alpha_ramisch.dat};
-\addlegendentry{\fasttext}]
-\addplot[blue,thick] table [y= d2v,x=X]{alpha_ramisch.dat};
-\addlegendentry{\doctovec}]
-\addplot[brown,thick] table [y= is1,x=X]{alpha_ramisch.dat};
-\addlegendentry{\infersent[\glove]}]
-\addplot[red,thick] table [y= is2,x=X]{alpha_ramisch.dat};
-\addlegendentry{\infersent[\fasttext]}]
-\addplot[yellow,thick] table [y= w2v,x=X]{alpha_ramisch.dat};
-\addlegendentry{\wordtovec}]
-\addplot[purple,thick] table [y= bert,x=X]{alpha_ramisch.dat};
-\addlegendentry{\bert}]
-\addplot[pink,thick] table [y= flair,x=X]{alpha_ramisch.dat};
-\addlegendentry{\flair}]
-\end{axis}
-\end{tikzpicture}
-\caption{Sensitivity analysis of $\alpha$ (\ramisch)}
-\label{fig:sensRamisch}
-\end{figure}
-
-
-\begin{figure}[H]
-\begin{tikzpicture}
-\begin{axis}[
-axis lines=middle,
-ymax=1.0,
-ymin=-0.2,
-xmax=1.0,
-xmin=0.0,
-    x label style={at={(axis description cs:0.5,-0.1)},anchor=north},
-    y label style={at={(axis description cs:-0.1,.5)},rotate=90,anchor=south},
-    xlabel= $\alpha$,
-    ylabel=$r$,
-  legend columns=2, 
-  legend pos=north east,
-  legend style={nodes={scale=0.65, transform shape}},
-  xticklabel style = {rotate=30,anchor=east},
-  enlargelimits = false,
-  axis x line = bottom,
-  xticklabels from table={alpha_discoj.dat}{X},xtick=data]
-\addplot[orange,thick] table [y=elmo,x=X]{alpha_discoj.dat};
-\addlegendentry{\elmo}
-\addplot[green,thick] table [y= fasttext,x=X]{alpha_discoj.dat};
-\addlegendentry{\fasttext}]
-\addplot[blue,thick] table [y= d2v,x=X]{alpha_discoj.dat};
-\addlegendentry{\doctovec}]
-\addplot[brown,thick] table [y= is1,x=X]{alpha_discoj.dat};
-\addlegendentry{\infersent[\glove]}]
-\addplot[red,thick] table [y= is2,x=X]{alpha_discoj.dat};
-\addlegendentry{\infersent[\fasttext]}]
-\addplot[yellow,thick] table [y= w2v,x=X]{alpha_discoj.dat};
-\addlegendentry{\wordtovec}]
-\addplot[purple,thick] table [y= bert,x=X]{alpha_discoj.dat};
-\addlegendentry{\bert}]
-\addplot[pink,thick] table [y= flair,x=X]{alpha_discoj.dat};
-\addlegendentry{\flair}]
-\end{axis}
-\end{tikzpicture}
-\caption{Sensitivity analysis of $\alpha$ (\discoj)}
-\label{fig:sensDiscoj}
-\end{figure}
 
 \subsection{Embeddings}
 \label{sec:embeddings}
-We made use of various embeddings, ranging from character- to document-level, in our study. Below is a description of each model along with how they are trained. Where available, we made use of pre-trained models as it is the general use case. These models were trained on different corpora, therefore we also do this to demonstrate the permeability of this problem across text genres.
+We made use of various embeddings, ranging from character- to
+document-level, in our study. Below is a description of each model along
+with how they are trained. Where available, we made use of pre-trained
+models as is standard practice in NLP. As the different models were
+trained on different corpora, we are not attempting to perform a
+controlled comparative evaluation of the different models, so much as a
+comparison of the standard pre-trained versions of each. If we were to
+retrain our own models over a standard dataset such as English
+Wikipedia, we would expect the results for the document-level embedding
+methods in particular to drop.
 
 \subsubsection{Word-level}
 A word embedding captures the context of a word in a document (in relation to other words) in the form of a vector representation. It tokenises text at the word level.
 
 \paragraph{\wordtovec}
-We trained \wordtovec \cite{Mikolov2013b} on a recent English Wikipedia dump,\footnote{\label{wiki}Dated 07-Jan-2019} after pre-processing (removing the formatting and punctuation) and concatenating each occurrence of the multiword expressions in our datasets (e.g.\ every occurrence of \textit{close shave} in the corpus becomes \textit{closeshave}). We make the greedy assumption that every occurence of the component words in sequence is an occurrence of the expression. We perform this token-level identification and manipulation of the corpus in order to obtain a single embedding for the expression, instead of a separate embeddings for the individual component words. In cases where the model still fails to generate an embedding (2 for \reddy, 8 for \ramisch and 25 for \discoj) for the expression (due to low token frequency), we assign a default compositionality score of 0.5 (neutral; based on a range of $[0,1]$. For paraphrases, we compute an element-wise sum of the embeddings for each of the component words to serve as the embedding of the phrase. We do this because token-level identification of each paraphrase in the training corpus is not practical.
+We trained \wordtovec \cite{Mikolov2013b} on a recent English Wikipedia dump,\footnote{\label{wiki}Dated 07-Jan-2019} after pre-processing (removing the formatting and punctuation) and concatenating each occurrence of the multiword expressions in our datasets (e.g.\ every occurrence of \textit{close shave} in the corpus becomes \textit{closeshave}). We make the greedy assumption that every occurence of the component words in sequence is an occurrence of the expression. We perform this token-level identification and manipulation of the corpus in order to obtain a single embedding for the expression, instead of a separate embeddings for the individual component words. In cases where the model still fails to generate an embedding (2 for \reddy, 8 for \ramisch and 25 for \discoj) for the expression (due to low token frequency), we assign a default compositionality score of 0.5 (neutral; based on a range of $[0,1]$). For paraphrases, we compute an element-wise sum of the embeddings for each of the component words to serve as the embedding of the phrase. We do this because token-level identification of each paraphrase in the training corpus is not practical.
+
+
+
+
+\subsubsection{Character-level}
+Character-level embeddings can generate vectors for words based on $n$-gram character aggregations. This means they can generate embeddings for out-of-vocabulary (OOV) words, as well new words or misspelled words. It tokenises text at the character level.
+
+\paragraph{\fasttext}
+We used the 300-dimensional \fasttext model pre-trained on Common Crawl and Wikipedia using CBOW (\fasttextpre), as well as one trained over the same Wikipedia corpus\textsuperscript{\ref{wiki}} using skip-gram (\fasttext). Again, since \fasttext \cite{Bojanowski2017} assumes all words to be whitespace delimited, we preprocess our MWE and paraphrases the same way as above (removing the space between them so that \textit{armchair critic} becomes \textit{armchaircritic}, say). 
+
+\paragraph{Contextualised Embeddings}
+Unlike classical embedding techniques, contextualised embeddings capture the semantics of a word or phrase in a manner which is sensitised to the context of usage.
+
+We used the pretrained implementations of \elmo \cite{Peters2018} and \bert \cite{Devlin2018} found in the \flair framework.\footnote{\url{https://github.com/zalandoresearch/flair}} The framework also has a contextualised string embedding model of its own, also named \flair \cite{Akbik2018}.
+
+We supplied sentences extracted from the Brown corpus where available in order to derive a contextualised interpretation. We extracted 25 sentences at random per MWE, except where there were fewer sentences in the corpus.
+
+However, we also included a naive context-independent implementation in our study, consistent with the other models, following the intuition that the relative compositionality of even a novel compound can often be predicted from its component words alone (e.g.\ \textit{giraffe potato} having the plausible compositional interpretation of a potato shaped like a giraffe vs.\ \textit{couch intelligence} having no natural interpretation).
+
+\subsubsection{Document-level}
+Document embeddings aggregate from words to documents, generating vector representations for entire documents. Since document and sentence embeddings are capable of generating a single embedding for a span of text, we are able to generate representations of the MWEs and paraphrases without preprocessing them (to remove space). We treat each constituent word as a single word document to generate embeddings.
+
+\paragraph{\infersent}
+We used two versions of \infersent \cite{Conneau2017b}: \infersent[\glove] and \infersent[\fasttext]. Each generates a representation of 300 dimensions, trained over the 1,000,000 most popular English words using \glove \cite{Jeffrey2014} and \fasttext, respectively.
+
+\paragraph{\doctovec}
+We used the gensim implementation of \doctovec \cite{Le+:2014,Lau:Baldwin:2016b} pretrained on Wikipedia data using the \wordtovec skip-gram models pretrained on Wikipedia and AP News.\footnote{\url{https://github.com/jhlau/doc2vec}}
+
+
+
 
 \begin{table*}[t]
 \begin{center}
@@ -501,38 +415,140 @@ We trained \wordtovec \cite{Mikolov2013b} on a recent English Wikipedia dump,\fo
 \end{center}
 \end{table}
 
-\subsubsection{Character-level}
-Character-level embeddings can generate vectors for words based on $n$-gram character aggregations. This means they can generate embeddings for out-of-vocabulary (OOV) words, as well new words or misspelled words. It tokenises text at the character level.
 
-\paragraph{\fasttext}
-We used the 300-dimensional \fasttext model pre-trained on Common Crawl and Wikipedia using CBOW (\fasttextpre), as well as one trained over the same Wikipedia corpus\textsuperscript{\ref{wiki}} using skip-gram (\fasttext). Again, since \fasttext \cite{Bojanowski2017} assumes all words to be whitespace delimited, we preprocess our MWE and paraphrases the same way as above (removing the space between them so that \textit{armchair critic} becomes \textit{armchaircritic}, say). 
+\begin{figure}[t]
+\begin{tikzpicture}
+\begin{axis}[
+axis lines=middle,
+ymax=1.0,
+ymin=-0.2,
+xmin=0.0,
+xmax=1.0,
+  axis x line = bottom,
+    x label style={at={(axis description cs:0.5,-0.1)},anchor=north},
+    y label style={at={(axis description cs:-0.1,.5)},rotate=90,anchor=south},
+    xlabel= $\alpha$,
+  ylabel=$r$,
+  legend columns=2, 
+  legend pos=north east,
+  legend style={nodes={scale=0.65, transform shape}},
+  xticklabel style = {rotate=30,anchor=east},
+   enlargelimits = false,
+  xticklabels from table={alpha_reddy.dat}{X},xtick=data]
+\addplot[orange,thick] table [y=elmo,x=X]{alpha_reddy.dat};
+\addlegendentry{\elmo}
+\addplot[green,thick] table [y= fasttext,x=X]{alpha_reddy.dat};
+\addlegendentry{\fasttext}]
+\addplot[blue,thick] table [y= d2v,x=X]{alpha_reddy.dat};
+\addlegendentry{\doctovec}]
+\addplot[brown,thick] table [y= is1,x=X]{alpha_reddy.dat};
+\addlegendentry{\infersent[\glove]}]
+\addplot[red,thick] table [y= is2,x=X]{alpha_reddy.dat};
+\addlegendentry{\infersent[\fasttext]}]
+\addplot[yellow,thick] table [y= w2v,x=X]{alpha_reddy.dat};
+\addlegendentry{\wordtovec}]
+\addplot[purple,thick] table [y= bert,x=X]{alpha_reddy.dat};
+\addlegendentry{\bert}]
+\addplot[pink,thick] table [y= flair,x=X]{alpha_reddy.dat};
+\addlegendentry{\flair}]
+\end{axis}
+\end{tikzpicture}
+\caption{Sensitivity analysis of $\alpha$ (\reddy)}
+\label{fig:sensReddy}
+\end{figure}
 
-\paragraph{Contextualised Embeddings}
-Unlike classical embedding techniques, contextualised embeddings capture the semantics of a word or phrase in a manner which is sensitised to the context of usage.
 
-We used the pretrained implementations of \elmo \cite{Peters2018} and \bert \cite{Devlin2018} found in the \flair framework.\footnote{\url{https://github.com/zalandoresearch/flair}} The framework also has a contextualised string embedding model of its own, also named \flair \cite{Akbik2018}.
+\begin{figure}[t]
+\begin{tikzpicture}
+\begin{axis}[
+  axis lines=middle,
+  ymin=-0.2,
+  ymax=1.0,
+  xmin=0.0,
+  xmax=1.0,
+  x label style={at={(axis description cs:0.5,-0.1)},anchor=north},
+  y label style={at={(axis description cs:-0.1,.5)},rotate=90,anchor=south},
+  xlabel= $\alpha$,
+  ylabel=$r$,
+  axis x line = bottom,
+  legend columns=2, 
+  legend pos=north east,
+  legend style={nodes={scale=0.65, transform shape}},
+  xticklabel style = {rotate=30,anchor=east},
+  enlargelimits = false,
+  xticklabels from table={alpha_ramisch.dat}{X},xtick=data]
+\addplot[orange,thick] table [y=elmo,x=X]{alpha_ramisch.dat};
+\addlegendentry{\elmo}
+\addplot[green,thick] table [y= fasttext,x=X]{alpha_ramisch.dat};
+\addlegendentry{\fasttext}]
+\addplot[blue,thick] table [y= d2v,x=X]{alpha_ramisch.dat};
+\addlegendentry{\doctovec}]
+\addplot[brown,thick] table [y= is1,x=X]{alpha_ramisch.dat};
+\addlegendentry{\infersent[\glove]}]
+\addplot[red,thick] table [y= is2,x=X]{alpha_ramisch.dat};
+\addlegendentry{\infersent[\fasttext]}]
+\addplot[yellow,thick] table [y= w2v,x=X]{alpha_ramisch.dat};
+\addlegendentry{\wordtovec}]
+\addplot[purple,thick] table [y= bert,x=X]{alpha_ramisch.dat};
+\addlegendentry{\bert}]
+\addplot[pink,thick] table [y= flair,x=X]{alpha_ramisch.dat};
+\addlegendentry{\flair}]
+\end{axis}
+\end{tikzpicture}
+\caption{Sensitivity analysis of $\alpha$ (\ramisch)}
+\label{fig:sensRamisch}
+\end{figure}
 
-We supplied sentences extracted from the Brown corpus where available in order to derive a contextualised interpretation. We extracted 25 sentences at random per MWE, except where there were fewer sentences in the corpus.
 
-However, we also included a naive context-independent implementation in our study, consistent with the other models, following the intuition that the relative compositionality of even a novel compound can often be predicted from its component words alone (e.g.\ \textit{giraffe potato} having the plausible compositional interpretation of a potato shaped like a giraffe vs.\ \textit{couch intelligence} having no natural interpretation).
-
-\subsubsection{Document-level}
-Document embeddings aggregate from words to documents, generating vector representations for entire documents. Since document and sentence embeddings are capable of generating a single embedding for a span of text, we are able to generate representations of the MWEs and paraphrases without preprocessing them (to remove space). We treat each constituent word as a single word document to generate embeddings.
-
-\paragraph{\infersent}
-We used two versions of \infersent \cite{Conneau2017b}: \infersent[\glove] and \infersent[\fasttext]. Each generates a representation of 300 dimensions, trained over the 1,000,000 most popular English words using \glove \cite{Jeffrey2014} and \fasttext, respectively.
-
-\paragraph{\doctovec}
-We used the gensim implementation of \doctovec \cite{Le+:2014,Lau:Baldwin:2016b} pretrained on Wikipedia data using the \wordtovec skip-gram models pretrained on Wikipedia and AP News.\footnote{\url{https://github.com/jhlau/doc2vec}}
+\begin{figure}[t]
+\begin{tikzpicture}
+\begin{axis}[
+axis lines=middle,
+ymax=1.0,
+ymin=-0.2,
+xmax=1.0,
+xmin=0.0,
+    x label style={at={(axis description cs:0.5,-0.1)},anchor=north},
+    y label style={at={(axis description cs:-0.1,.5)},rotate=90,anchor=south},
+    xlabel= $\alpha$,
+    ylabel=$r$,
+  legend columns=2, 
+  legend pos=north east,
+  legend style={nodes={scale=0.65, transform shape}},
+  xticklabel style = {rotate=30,anchor=east},
+  enlargelimits = false,
+  axis x line = bottom,
+  xticklabels from table={alpha_discoj.dat}{X},xtick=data]
+\addplot[orange,thick] table [y=elmo,x=X]{alpha_discoj.dat};
+\addlegendentry{\elmo}
+\addplot[green,thick] table [y= fasttext,x=X]{alpha_discoj.dat};
+\addlegendentry{\fasttext}]
+\addplot[blue,thick] table [y= d2v,x=X]{alpha_discoj.dat};
+\addlegendentry{\doctovec}]
+\addplot[brown,thick] table [y= is1,x=X]{alpha_discoj.dat};
+\addlegendentry{\infersent[\glove]}]
+\addplot[red,thick] table [y= is2,x=X]{alpha_discoj.dat};
+\addlegendentry{\infersent[\fasttext]}]
+\addplot[yellow,thick] table [y= w2v,x=X]{alpha_discoj.dat};
+\addlegendentry{\wordtovec}]
+\addplot[purple,thick] table [y= bert,x=X]{alpha_discoj.dat};
+\addlegendentry{\bert}]
+\addplot[pink,thick] table [y= flair,x=X]{alpha_discoj.dat};
+\addlegendentry{\flair}]
+\end{axis}
+\end{tikzpicture}
+\caption{Sensitivity analysis of $\alpha$ (\discoj)}
+\label{fig:sensDiscoj}
+\end{figure}
 
 
 
 \section{Results and Discussion}
 \label{ssec:accessibility}
 
-The results from our experiments on the \ramisch, \reddy and \discoj datasets can be found in \tabref[s]{tab:ramisch}, \ref{tab:reddy} and \ref{tab:discoj}, respectively with the best performing $\alpha$s and $\beta$s for each embedding method.
+The results from our experiments on the \ramisch, \reddy and \discoj datasets can be found in \tabref[s]{tab:ramisch}, \ref{tab:reddy} and \ref{tab:discoj}, respectively, with the best performing $\alpha$s and $\beta$s for each embedding method.
 
-We observe that the $\alpha$s in \tabref{tab:ramisch} are high, implying the compound nouns in \ramisch are more compositional in terms of their head (second) nouns. Similarly, the lower $\alpha$ scores in \tabref{tab:reddy} suggest \reddy's compound nouns are more dependent on their modifiers or first nouns. \tabref{tab:discoj}, on the other hand, shows the $\alpha$s embracing the entire range of $[0,1]$. This suggests the adjective--noun pairs in \discoj are spread in terms of their dependency on their constituents, which also depends on the embedding method used. Overall, the methods are sensitive to the choice of the $\alpha$ hyper-parameter, with \elmo and \infersent being particularly sensitive and showing substantial change in output with change in $\alpha$ (\figref[s]{fig:sensReddy},\ref{fig:sensRamisch} and \ref{fig:sensDiscoj}).
+We observe that the $\alpha$s in \tabref{tab:ramisch} are high, implying the compound nouns in \ramisch are more compositional in terms of their head (second) nouns. Similarly, the lower $\alpha$ scores in \tabref{tab:reddy} suggest \reddy's compound nouns are more dependent on their modifiers, or first nouns. \tabref{tab:discoj}, on the other hand, shows the $\alpha$s embracing the entire range of $[0,1]$. This suggests the adjective--noun pairs in \discoj are spread in terms of their dependency on their constituents, which also depends on the embedding method used. Overall, the methods are sensitive to the choice of the $\alpha$ hyper-parameter, with \elmo and \infersent being particularly sensitive and showing substantial change in output with change in $\alpha$ (\figref[s]{fig:sensReddy},\ref{fig:sensRamisch} and \ref{fig:sensDiscoj}).
 
 We see that for \ramisch (\tabref{tab:ramisch}), \wordtovec achieves the highest scores among the direct combination metrics, while \infersent outperforms the other methods among the paraphrase metrics, and \wordtovec falls behind character embedding models like \fasttext, \elmo and \bert (even when the latter two were performed without context). The lower $\beta$ scores also show the other models favouring the paraphrase metrics, while the high $\beta$ score for \wordtovec shows its preference for direct combination.
 
@@ -578,7 +594,7 @@ We also notice that, unlike the noun compounds in \reddy and \ramisch, there is 
 
 In terms of the contextualised embeddings, we notice that across the three models, there is only a slight increase in correlation when contextualised embeddings are used. This suggests that even with context, these modern embedding techniques are unable to capture non-compositionality as well as their simpler counterparts.
 
-Further analysis reveals that most models struggle to accurately predict the compositionality of idiomatic noun compounds, as well as semi-compositional terms wherein one of the constituent words are used in a metaphoric sense. In \reddy, we observe this for \textit{silver bullet} and \textit{snail mail}. Interestingly, while \bert struggles to effectively model compositionality throughout, it is surprisingly the only model able to perfectly predict the compositionality of \textit{snail mail} (which appears as an extreme outlier). This suggests that \bert might be more successful using a different metric. In the case of the adjective-noun phrases in \discoj, we see that the models are still unable to accurately predict the compositionality of non-compositional phrases (like \textit{big fish}, \textit{heavy metal} and \textit{red tape}). This time, however, they are also unable to capture \textit{mobile phone} and \textit{floppy disk}, perhaps because of their relatively archaic use.
+Further analysis reveals that most models struggle to accurately predict the compositionality of idiomatic noun compounds, as well as semi-compositional terms wherein one of the constituent words are used in a metaphoric sense. In \reddy, we observe this for \textit{silver bullet} and \textit{snail mail}. Interestingly, while \bert struggles to effectively model compositionality throughout, it is surprisingly the only model able to perfectly predict the compositionality of \textit{snail mail} (which appears as an extreme outlier). This suggests that \bert might be more successful using a different metric. In the case of the adjective--noun phrases in \discoj, we see that the models are still unable to accurately predict the compositionality of non-compositional phrases (like \textit{big fish}, \textit{heavy metal} and \textit{red tape}). This time, however, they are also unable to capture \textit{mobile phone} and \textit{floppy disk}, perhaps because of their relatively archaic use.
 
 \section{Conclusion}
 \label{sec:length}
@@ -589,7 +605,8 @@ In future work, we intend to tune our hyperparameters over held-out data, and ex
 
 %bsalehi: commented this part and will uncomment for camera ready
 \section*{Acknowledgments}
-We would like to thank the curators and annotators of the datasets used in this study.
+We would like to thank the curators and annotators of the datasets used
+in this study, and the anonymous reviewers for their insightful comments.
 We would also like to thank Chris Biemann from the University of Hamburg for making the dataset from the DiSCo shared task available to us.
 
 %\noindent {\bf Preparing References:} \\
